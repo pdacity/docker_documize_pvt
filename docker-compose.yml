@@ -1,0 +1,66 @@
+version: "2.4"
+
+services:
+  app:
+    #image: targodan/documize:latest
+    build:
+      context: .
+      args:
+        DOCUMIZE_VERSION: ${DOCUMIZE_VERSION}
+        H_PROXY: ${HTTP_PROXY}
+        S_PROXY: ${HTTPS_PROXY}
+    container_name: wiki_app
+    depends_on:
+      - db
+    ports:
+      - 5000:5000
+    environment:
+      DOCUMIZE_PORT: 5000
+      DOCUMIZE_DB: host=db port=5432 dbname=documize user=documize password=hawthetudEawAvki sslmode=disable
+      DOCUMIZE_DB_TYPE: postgresql
+      DOCUMIZESALT: ${DOCUMIZESALT}
+      DOCUMIZELOCATION: selfhost
+    networks:
+      - documizenet
+    restart: always
+    cpu_shares: 200
+    mem_limit: 512m
+    memswap_limit: 1024m
+
+  conv:
+    container_name: wiki_conv
+    image: documize/conversion:3.1.0    
+    ports:
+      - 5001:80
+    networks:
+      - documizenet
+    restart: always
+    cpu_shares: 200
+    mem_limit: 512m
+    memswap_limit: 1024m
+
+  db:
+    image: postgres:9.6-alpine
+    container_name: wiki_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+       - db-data:/var/lib/postgresql/data
+    networks:
+       - documizenet
+    restart: always
+    cpu_shares: 200
+    mem_limit: 512m
+    memswap_limit: 1024m
+
+
+        
+volumes:
+  db-data:
+
+networks:
+  documizenet:
+    external: false
+
