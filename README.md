@@ -19,4 +19,47 @@ Cкопируйте `.env.sample` в `.env` и отредактируйте по
 ## Запуск
 docker-compose up -d
 
+## Настройки proxy для Docker pull
+
+Создайте каталог для systemd с настройками Docker service:
+
+```
+sudo mkdir /etc/systemd/system/docker.service.d
+```
+
+В каталоге создайте файл /etc/systemd/system/docker.service.d/http-proxy.conf в который добавьте HTTP_PROXY environment variable:
+
+```
+[Service] 
+Environment="HTTP_PROXY=http://<PROXY_IP>:<PROXY_PORT>/"
+```
+
+Если вы используете локальный Docker registry, доступ к которому должен осуществляться напрямую можно задать его в NO_PROXY environment variable:
+
+```
+[Service]
+Environment="http://<PROXY_IP>:<PROXY_PORT>/"
+Environment="NO_PROXY=localhost,127.0.0.0/8,reg.domain.com"
+```
+
+Синхронизируйте изменения в  systemd:
+
+```
+sudo systemctl daemon-reload
+```
+
+Убедитесь что изменения вступили в силу:
+
+```
+sudo systemctl show --property Environment docker
+
+Environment=HTTP_PROXY=http://<PROXY_IP>:<PROXY_PORT>/
+```
+
+Перезапустите Docker:
+
+```
+sudo systemctl restart docker
+```
+
 
